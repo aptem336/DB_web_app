@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Reports</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/styles.css" type="text/css"/>
+    </head>
+    <body onload="window.parent.hide_all()">
+        <script>
+            function show_progress_input() {
+                document.location = 'InputServlet?type=progress&query=SELECT Оценки.НЗК, Аттестации.Семестр AS "Начало периода", Аттестации.Семестр AS "Конец периода" FROM Оценки JOIN Аттестации ON Оценки.Аттестация=Аттестации.Шифр';
+            }
+            function show_attestation_input() {
+                document.location = 'InputServlet?type=attestation&query=SELECT Семестр FROM Аттестации';
+            }
+            function get_plan() {
+                document.location = 'MainServlet?type=plan&query=SELECT Специальности.Название AS "Специальность", Предметы.Название AS "Предмет", Аттестации.Семестр FROM Специальности JOIN Аттестации ON Аттестации.Специальность=Специальности.Шифр JOIN Предметы ON Предметы.Шифр=Аттестации.Предмет';
+            }
+        </script>
+        <div>
+            <button onclick="show_progress_input()">Успеваемость</button>
+            <br>
+            <button onclick="show_attestation_input()">Список аттестаций</button>
+            <br>
+            <button onclick="get_plan()">Учебный план</button>
+        </div>
+    </body>
+</html>

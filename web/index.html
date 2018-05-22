@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Study Process</title>
+        <meta charset="windows-1251">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/styles.css" type="text/css"/>
+    </head>
+    <body onload="change_table('5')">
+        <script>
+            var id = -1;
+            function change_table(table_index) {
+                hide_edit();
+                document.getElementById('responce_frame').src = 'MainServlet?type=change_table&table_index=' + table_index;
+            }
+            function reports() {
+                document.getElementById('responce_frame').src = 'reports.html';
+            }
+            function del() {
+                document.getElementById('responce_frame').src = 'MainServlet?type=delete&id=' + id;
+                hide_edit();
+            }
+            function insert() {
+                document.getElementById('responce_frame').src = 'InputServlet?type=insert';
+                hide_edit();
+                hide_all();
+            }
+            function update() {
+                document.getElementById('responce_frame').src = 'InputServlet?type=update&id=' + id;
+                hide_edit();
+                hide_all();
+            }
+            function show_edit() {
+                document.getElementById('update').style.display = 'block';
+                document.getElementById('del').style.display = 'block';
+            }
+            function hide_edit() {
+                id = -1;
+                document.getElementById('update').style.display = 'none';
+                document.getElementById('del').style.display = 'none';
+            }
+            function show_all() {
+                document.getElementById('tools_div').style.display = 'block';
+            }
+            function hide_all() {
+                document.getElementById('tools_div').style.display = 'none';
+            }
+        </script>
+        <div id="permanent_div">
+            <button onclick="change_table('0')">Специальности</button>
+            <button onclick="change_table('1')">Группы</button>
+            <button onclick="change_table('2')">Студенты</button>
+            <button onclick="change_table('3')">Предметы</button>
+            <button onclick="change_table('4')">Аттестации</button>
+            <button onclick="change_table('5')">Оценки</button>
+            <button onclick="reports()">Отчёты</button>
+        </div>
+        <br>
+        <div id="responce_div">
+            <iframe id="responce_frame">
+                <span>Ваш браузер не поддерживает "iframe", корректная работа приложения невозможна!</span>
+            </iframe>
+            <div id="tools_div">
+                <button class="tool_button" onclick="insert()">
+                    <img class="tool_icon" src="images/add.png" alt="add">
+                </button>
+                <button class="tool_button" id="update" onclick="update()">
+                    <img class="tool_icon" src="images/edit.png" alt="edit">
+                </button>
+                <button class="tool_button" id="del" onclick="del()">
+                    <img class="tool_icon" src="images/delete.png" alt="delete">
+                </button>
+            </div>
+        </div>
+    </body>
+</html>
+

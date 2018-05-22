@@ -1,0 +1,124 @@
+.SQL_error {
+    background-color: #f8a5c2;
+    width: 50%;
+}
+select {
+    overflow: hidden;
+    cursor: pointer;
+}
+div {
+    border: 1px solid #bdc3c7;
+    border-radius: 15px;
+    margin: auto;
+    padding: 10px;
+}
+#permanent_div {
+    border: none;
+    border-radius: 0;
+    background-color: #227093;
+}
+#responce_div {
+    position: absolute;
+    width: 70%;
+    height: 80%;
+    left: 15%;
+}
+#tools_div {
+    position: absolute;
+    top: 0;
+    right: -60px;
+    padding: 5px;
+}
+span {
+    display: block;
+    margin: auto;
+}
+.title {
+    margin-top: 5px;
+    font-size: 16pt;
+    font-weight: bold;
+}
+button {
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    background-color: #227093;
+    color: white;
+    font-size: 14pt;
+    font-weight: bold;
+    transition: all 0.1s ease;
+    opacity: 0.8;
+    margin: auto;
+    margin-top: 5px;
+    padding: 5px;
+}
+button:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+    opacity: 1;
+}
+#update, #del, #submit {
+    display: none;
+}
+.tool_button {
+    width: 40px;
+    height: 40px;
+    background: none;
+    margin: 0;
+}
+.tool_icon {
+    width: 100%;
+}
+.data_field {
+    display: block;
+    border: 1px solid;
+    border-radius: 10px;
+    outline: none;
+    text-align: center;
+    text-align-last: center;
+    font-size: 12pt;
+    margin: auto;
+    padding: 3px;
+}
+.data_field:valid {
+    border-color: #27ae60;
+}
+.data_field:invalid {
+    border-color: #c0392b;
+}
+.data_field:invalid + .data_error {
+    visibility: visible;
+}
+.data_error {
+    color: #c0392b;
+    visibility: hidden;
+    font-size: 10pt;
+}
+table {
+    cursor: pointer;
+    margin: auto;
+    margin-top: 10px;
+}
+td, th {
+    border: 1px solid #2c3e50;
+    border-radius: 5px;
+    padding: 5px;
+}
+th {
+    cursor: default;
+    background-color: #227093;
+    color: white;
+}
+#responce_frame {
+    width: 100%; 
+    height: 100%;
+    border: none;
+}
+body {
+    background-color: white;
+    text-align: center;
+    font-family: Helvetica;
+    font-size: 12pt;
+    margin: 0;
+    padding: 0;
+}
