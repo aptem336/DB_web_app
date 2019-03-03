@@ -1,5 +1,7 @@
-package clinic;
+package db;
 
+import entities.Address;
+import entities.Sector;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,36 +13,27 @@ import javax.sql.DataSource;
 
 public class DBHandler {
 
-    public final static ArrayList<ActiveRecord> UNITS = new ArrayList<>();
+    public final static HashMap<String, ActiveRecord> UNITS = new HashMap<>();
     public final static HashMap<String, ArrayList<ActiveRecord>> DATA = new HashMap<>();
-    public final static ArrayList<String> TABLE_NAMES = new ArrayList<>();
 
-    //..
     static {
-        UNITS.add(new Address());
-//        UNITS.put("Aдреса", new Address());
-//        UNITS.put("Aдреса", new Address());
-//        UNITS.put("Aдреса", new Address());
-//        UNITS.put("Aдреса", new Address());
-//        UNITS.put("Aдреса", new Address());
-//        UNITS.put("Aдреса", new Address());
-//        UNITS.put("Aдреса", new Address());
-        UNITS.forEach((record) -> {
-            readTable(record);
+        UNITS.put(new Address().getTableName(), new Address());
+        UNITS.put(new Sector().getTableName(), new Sector());
+        UNITS.values().forEach((record) -> {
+            readData(record);
         });
     }
 
-    //..
-    public static void readTable(ActiveRecord record) {
+    private static void readData(ActiveRecord record) {
         try {
             ArrayList<ActiveRecord> records = new ArrayList<>();
             ResultSet data = getResultSet("SELECT * FROM \"" + record.getTableName() + "\"");
             while (data.next()) {
                 Object[] row = new Object[data.getMetaData().getColumnCount()];
                 for (int i = 0; i < row.length; i++) {
-                    row[i] = data.getObject(i);
+                    row[i] = data.getObject(i + 1);
                 }
-                records.add(record);
+                records.add(record.cast(row));
             }
             DATA.put(record.getTableName(), records);
         } catch (SQLException ex) {
@@ -59,19 +52,13 @@ public class DBHandler {
         }
     }
 
-    public static void executeUpdate(String update_query) {
-        try {
-            getConnection().createStatement().executeUpdate(update_query);
-        } catch (NamingException | SQLException ex) {
-            //TO-DO
-            System.out.println(ex.getMessage());
-        }
+    public static void executeUpdate(String update_query) throws NamingException, SQLException {
+        getConnection().createStatement().executeUpdate(update_query);
     }
 
-    public static Connection getConnection() throws NamingException, SQLException {
+    private static Connection getConnection() throws NamingException, SQLException {
         InitialContext initContext = new InitialContext();
         DataSource dataSource = (DataSource) initContext.lookup("java:comp/env/jdbc/sql");
         return dataSource.getConnection();
     }
-
 }
