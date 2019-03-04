@@ -1,7 +1,6 @@
 package db;
 
-import entities.Address;
-import entities.Sector;
+import entities.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +18,12 @@ public class DBHandler {
     static {
         UNITS.put(new Address().getTableName(), new Address());
         UNITS.put(new Sector().getTableName(), new Sector());
+        UNITS.put(new Status().getTableName(), new Status());
+        UNITS.put(new Purpose().getTableName(), new Purpose());
+        UNITS.put(new Doctor().getTableName(), new Doctor());
+        UNITS.put(new Diagnosis().getTableName(), new Diagnosis());
+        UNITS.put(new Patient().getTableName(), new Patient());
+        UNITS.put(new Visit().getTableName(), new Visit());
         UNITS.values().forEach((record) -> {
             readData(record);
         });

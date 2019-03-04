@@ -18,21 +18,22 @@ public class Address extends ActiveRecord {
         this.street = (String) row[0];
         this.home = (String) row[1];
         Sector newSector = new Sector();
-        newSector.sector_number = (Integer)row[2];
+        newSector.sector_number = (Integer) row[2];
+        newSector.complete();
         this.sector = newSector;
     }
 
     @Override
     public void complete() {
         try {
-            String select_query = "SELECT \"Номер_участка\" FROM \"Адреса\" WHERE \"Улица\"='" + street + "' AND \"Дом\"='" + home + "'";
+            String select_query = "SELECT * FROM \"Адреса\" WHERE \"Улица\"='" + street + "' AND \"Дом\"='" + home + "'";
             ResultSet resultSet = DBHandler.getResultSet(select_query);
             resultSet.next();
             Sector newSector = new Sector();
             newSector.sector_number = resultSet.getInt("Номер_участка");
+            newSector.complete();
             sector = newSector;
         } catch (SQLException ex) {
-            //TO-DO
             System.out.println(ex.getMessage());
         }
     }
@@ -71,5 +72,6 @@ public class Address extends ActiveRecord {
     public ActiveRecord cast(Object[] row) {
         return new Address(row);
     }
+
 
 }

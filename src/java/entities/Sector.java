@@ -5,12 +5,14 @@ import db.ActiveRecord;
 public class Sector extends ActiveRecord {
 
     public int sector_number;
+    public int new_sector_number;
 
     public Sector() {
     }
 
     public Sector(Object[] row) {
         this.sector_number = (Integer) row[0];
+        this.new_sector_number = (Integer) row[0];
     }
 
     @Override
@@ -19,12 +21,14 @@ public class Sector extends ActiveRecord {
 
     @Override
     public String insertQuery() {
-        return "INSERT INTO \"" + getTableName() + "\" VALUES ('" + sector_number + "')";
+        return "INSERT INTO \"" + getTableName() + "\" VALUES (nextval('Номер_участка'))";
     }
 
     @Override
     public String updateQuery() {
-        return "UPDATE \"" + getTableName() + "\" SET \"Номер_участка\"='" + sector_number + "'";
+        String update_query = "UPDATE \"" + getTableName() + "\" SET \"Номер_участка\"='" + new_sector_number + "' WHERE \"Номер_участка\"='" + sector_number + "'";
+        sector_number = new_sector_number;
+        return update_query;
     }
 
     @Override
@@ -51,5 +55,6 @@ public class Sector extends ActiveRecord {
     public ActiveRecord cast(Object[] row) {
         return new Sector(row);
     }
+
 
 }
