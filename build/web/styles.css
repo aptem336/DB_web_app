@@ -1,10 +1,13 @@
+#data_frame {
+    width: 100%;
+}
 th, td {
     border: 2px solid lightgray;
 }
-tr:hover:not(:first-child) td {
+#data_table tr:hover:not(:first-child) td {
     cursor: pointer;
     border: 2px solid lightblue;
 }
-tr.selected {
+#data_table tr.selected {
     background-color: lightgray;
 }
