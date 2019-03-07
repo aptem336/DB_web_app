@@ -6,15 +6,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 public class DBHandler {
 
-    public final static HashMap<String, TableMapping> TABLES = new HashMap<>();
+    public final static HashMap<String, TableHandler> TABLE_HANDLERS = new HashMap<>();
 
     static {
         try (Connection connection = getConnection()) {
@@ -28,26 +30,20 @@ public class DBHandler {
                 for (int i = 0; i < dataMD.getColumnCount(); i++) {
                     columns.put(dataMD.getColumnName(i + 1), dataMD.getColumnTypeName(i + 1));
                 }
-                HashMap<String[], HashMap<String, String>> data = new HashMap<>();
-                ResultSet pk = database_MD.getPrimaryKeys(null, null, table_name);
-                String[] pk_names = new String[0];
-                while (pk.next()) {
-                    pk_names = Arrays.copyOf(pk_names, pk_names.length + 1);
-                    pk_names[pk_names.length - 1] = pk.getString("COLUMN_NAME");
+                ArrayList<HashMap<String, String>> data_table = new ArrayList<>();
+                ResultSet pkRS = database_MD.getPrimaryKeys(null, null, table_name);
+                Set<String> pk_names = new HashSet<>();
+                while (pkRS.next()) {
+                    pk_names.add(pkRS.getString("COLUMN_NAME"));
                 }
                 while (dataRS.next()) {
-                    HashMap<String, String> row = new HashMap<>();
-                    String[] pk_values = new String[0];
-                    for (String pk_name : pk_names) {
-                        pk_values = Arrays.copyOf(pk_values, pk_values.length + 1);
-                        pk_values[pk_values.length - 1] = dataRS.getString(pk_name);
-                    }
+                    HashMap<String, String> data_row = new HashMap<>();
                     for (String name : columns.keySet()) {
-                        row.put(name, dataRS.getString(name));
+                        data_row.put(name, dataRS.getString(name));
                     }
-                    data.put(pk_values, row);
+                    data_table.add(data_row);
                 }
-                TABLES.put(table_name, new TableMapping(table_name, pk_names, columns, data));
+                TABLE_HANDLERS.put(table_name, new TableHandler(new HTMLBuilder(columns), new SQLBuilder(), data_table));
             }
         } catch (NamingException | SQLException ex) {
             System.out.println(ex.getMessage());
@@ -62,5 +58,9 @@ public class DBHandler {
         InitialContext initContext = new InitialContext();
         DataSource dataSource = (DataSource) initContext.lookup("java:comp/env/jdbc/sql");
         return dataSource.getConnection();
+    }
+
+    static void apply(HashMap<String, String[]> parameters) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
