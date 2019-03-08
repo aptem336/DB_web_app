@@ -2,7 +2,11 @@ package db;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -26,11 +30,14 @@ public class Servlet extends HttpServlet {
                 String table_name = parameters.get("table_name")[0];
                 switch (type[0]) {
                     case "apply":
-                        DBHandler.apply(parameters);
+                        DBHandler.TABLE_HANDLERS.get(table_name).apply(parameters);
+                        break;
+                    case "delete":
+                        DBHandler.TABLE_HANDLERS.get(table_name).delete(parameters);
                         break;
                 }
                 out.println("\t<form id=\"data_form\" action=\"\" target=\"data_frame\" method=\"post\">");
-                out.printf("\t\t<table id=\"data_table\">\n%s\t\t</table>\n", DBHandler.TABLE_HANDLERS.get(table_name).buildHTML());
+                out.printf("\t\t<table id=\"data_table\">\n%s\t\t</table>\n", DBHandler.TABLE_HANDLERS.get(table_name).getHTMLTable());
                 out.printf("\t\t<button id=\"apply\" name=\"type\" value=\"%s\" hidden=\"true\">%s</button>\n", "apply", "Применить");
                 out.printf("\t\t<button id=\"reset\" name=\"type\" value=\"%s\"  hidden=\"true\" formnovalidate>%s</button>\n", "", "Отменить");
                 out.println("\t\t<input id=\"table_name\" type=\"hidden\" name=\"table_name\">");
@@ -50,6 +57,8 @@ public class Servlet extends HttpServlet {
             }
             out.println("</body>");
             out.println("</html>");
+        } catch (SQLException | NamingException ex) {
+            System.out.println(ex.getMessage());
         }
     }
 

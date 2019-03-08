@@ -4,40 +4,55 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class HTMLBuilder {
 
     private final String[] NULL;
-    private final MessageFormat DATA_ROW_FORMAT;
+    private final String HEADER;
+    private final MessageFormat ROW_FORMAT;
 
-    public HTMLBuilder(HashMap<String, String> columns) {
+    public HTMLBuilder(LinkedHashMap<String, String> columns) {
         this.NULL = new String[columns.keySet().size()];
         Arrays.fill(this.NULL, "");
-        this.DATA_ROW_FORMAT = DATA_ROW_FORMAT(columns);
+        this.HEADER = DATA_HEADER(columns);
+        this.ROW_FORMAT = DATA_ROW_FORMAT(columns);
     }
 
-    public String buildDATA_TABLE(Collection<HashMap<String, String>> data) {
-        return HTMLBuilder.buildDATA_TABLE(data, DATA_ROW_FORMAT, NULL);
+    public String HTML_TABLE;
+
+    public void updateDataTable(Collection<LinkedHashMap<String, String>> data) {
+        this.HTML_TABLE = HEADER + buildDATA_TABLE(data, ROW_FORMAT, NULL);
     }
 
-    public static String buildDATA_TABLE(Collection<HashMap<String, String>> data, MessageFormat DATA_FORMAT, String[] NULL) {
+    private static String buildDATA_TABLE(Collection<LinkedHashMap<String, String>> data, MessageFormat ROW_FORMAT, String[] NULL) {
         String HTMLData = "";
         int i = 0;
-        for (HashMap<String, String> row : data) {
-            HTMLData += "\t\t<tr>\n" + DATA_FORMAT.format(row.values().toArray());
-            HTMLData += String.format(DATA_COLUMN_FORMAT, "index", i, "hidden", "", "", "disabled", "");
+        for (LinkedHashMap<String, String> row : data) {
+            HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(row.values().toArray());
+            HTMLData += String.format(DATA_COLUMN_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "", "");
             i++;
         }
-        HTMLData += "\t\t<tr>\n" + DATA_FORMAT.format(NULL);
+        HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(NULL);
+        HTMLData += String.format(DATA_COLUMN_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "", "");
         return HTMLData;
     }
-    private final static String DATA_COLUMN_FORMAT = "\t\t\t<td><input name=\"%1$s\" value=\"%2$s\" type=\"%3$s\" placeholder=\"%1$s\" title=\"%4$s\" %5$s %6$s %7$s>\n";
 
-    private static MessageFormat DATA_ROW_FORMAT(HashMap<String, String> columns) {
+    private static String DATA_HEADER(LinkedHashMap<String, String> columns) {
+        String DATA_HEADER = "\t\t<tr class=\"data_header\">\n";
+        for (String name : columns.keySet()) {
+            DATA_HEADER += "\t\t\t<th>" + name + "\n";
+        }
+        return DATA_HEADER;
+    }
+
+    private final static String DATA_COLUMN_FORMAT = "\t\t\t<td><input name=\"%1$s\" value=\"%2$s\" type=\"%3$s\" placeholder=\"%1$s\" title=\"%4$s\" autocomplete=\"%5$s\" %6$s %7$s %8$s list=\"%9$s\">\n";
+
+    private static MessageFormat DATA_ROW_FORMAT(LinkedHashMap<String, String> columns) {
         String DATA_ROW_FORMAT = "";
         int i = 0;
         for (String name : columns.keySet()) {
-            DATA_ROW_FORMAT += String.format(DATA_COLUMN_FORMAT, name, "{" + i + "}", HTML_TYPE_MAPPING.get(columns.get(name)), "Дважды кликните, чтобы изменить", columns.get(name).equals("serial") ? "" : "required", "disabled", "");
+            DATA_ROW_FORMAT += String.format(DATA_COLUMN_FORMAT, name, "{" + i + "}", HTML_TYPE_MAPPING.get(columns.get(name)), "Дважды кликните, чтобы изменить", "off", columns.get(name).equals("serial") ? "" : "required", "disabled", "", "");
             i++;
         }
         return new MessageFormat(DATA_ROW_FORMAT);

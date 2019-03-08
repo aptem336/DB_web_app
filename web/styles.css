@@ -8,7 +8,7 @@ body {
 #data_table {
     margin: auto;
 }
-#data_table tr:hover td input:disabled {
+#data_table tr:hover input:disabled {
     border: 2px solid #90bafe;
     border-radius: 2px;
     cursor: pointer;
