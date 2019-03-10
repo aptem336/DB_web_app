@@ -1,5 +1,6 @@
 package db;
 
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -16,35 +17,34 @@ public class SQLBuilder {
     private final String deleteQuery;
 
     //разобраться с PStmt, открывать при переходе на таблицу?
+    //передаю индекс...???
     public SQLBuilder(String table_name, LinkedHashSet<String> pk, LinkedHashMap<String, String> columns) throws NamingException, SQLException {
         this.columns = columns;
-        deleteQuery = "DELETE FROM \"" + table_name + "\" " + buildDeleteQuery(pk);
-        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(pk, columns) + " " + buildDeleteQuery(pk);
         insertQuery = "INSERT INTO \"" + table_name + "\" " + buildInsertQuery(columns);
+        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns) + " " + buildDeleteQuery(pk);
+        deleteQuery = "DELETE FROM \"" + table_name + "\" " + buildDeleteQuery(pk);
     }
 
     public void insert(LinkedHashMap<String, String> row) throws SQLException, NamingException {
-        PreparedStatement insertStatement = getPreparedStatement(insertQuery);
-        JAVA_TYPE_MAPPING(insertStatement, columns, row);
-        insertStatement.executeUpdate();
+        try (Connection connection = DBHandler.getConnection(); PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
+            JAVA_TYPE_MAPPING(1, insertStatement, columns, row);
+            insertStatement.executeUpdate();
+        }
     }
 
-    //не получается вставить в PStmt из-за уникальности ключей
     public void update(LinkedHashMap<String, String> row, LinkedHashMap<String, String> pk) throws SQLException, NamingException {
-        PreparedStatement updateStatement = getPreparedStatement(updateQuery);
-        JAVA_TYPE_MAPPING(updateStatement, columns, row);
-        JAVA_TYPE_MAPPING(updateStatement, columns, pk);
-        updateStatement.executeUpdate();
+        try (Connection connection = DBHandler.getConnection(); PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
+            JAVA_TYPE_MAPPING(1, updateStatement, columns, row);
+            JAVA_TYPE_MAPPING(row.size() + 1, updateStatement, columns, pk);
+            updateStatement.executeUpdate();
+        }
     }
 
     public void delete(LinkedHashMap<String, String> pk) throws SQLException, NamingException {
-        PreparedStatement deleteStatement = getPreparedStatement(deleteQuery);
-        JAVA_TYPE_MAPPING(deleteStatement, columns, pk);
-        deleteStatement.executeUpdate();
-    }
-
-    public static PreparedStatement getPreparedStatement(String query) throws NamingException, SQLException {
-        return DBHandler.getConnection().prepareStatement(query);
+        try (Connection connection = DBHandler.getConnection(); PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
+            JAVA_TYPE_MAPPING(1, deleteStatement, columns, pk);
+            deleteStatement.executeUpdate();
+        }
     }
 
     private static String buildInsertQuery(LinkedHashMap<String, String> columns) {
@@ -62,7 +62,7 @@ public class SQLBuilder {
         return insertQuery;
     }
 
-    private static String buildUpdateQuery(LinkedHashSet<String> pk, LinkedHashMap<String, String> columns) {
+    private static String buildUpdateQuery(LinkedHashMap<String, String> columns) {
         String updateQuery = "";
         String format = "{0}=?";
         for (int i = 1; i < columns.keySet().size(); i++) {
@@ -83,8 +83,7 @@ public class SQLBuilder {
         return deleteQuery;
     }
 
-    private static void JAVA_TYPE_MAPPING(PreparedStatement stmt, LinkedHashMap<String, String> columns, LinkedHashMap<String, String> values) throws SQLException {
-        int i = 1;
+    private static void JAVA_TYPE_MAPPING(int i, PreparedStatement stmt, LinkedHashMap<String, String> columns, LinkedHashMap<String, String> values) throws SQLException {
         for (String name : values.keySet()) {
             switch (columns.get(name)) {
                 case "serial":

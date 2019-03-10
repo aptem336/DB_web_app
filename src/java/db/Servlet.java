@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -32,7 +30,7 @@ public class Servlet extends HttpServlet {
                     case "apply":
                         DBHandler.TABLE_HANDLERS.get(table_name).apply(parameters);
                         break;
-                    case "delete":
+                    case "×":
                         DBHandler.TABLE_HANDLERS.get(table_name).delete(parameters);
                         break;
                 }

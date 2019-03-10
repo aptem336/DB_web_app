@@ -30,11 +30,12 @@ public class HTMLBuilder {
         int i = 0;
         for (LinkedHashMap<String, String> row : data) {
             HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(row.values().toArray());
-            HTMLData += String.format(DATA_COLUMN_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "", "");
+            HTMLData += String.format(INPUT_FORMAT, "type", "×", "submit", "", "off", "", "enabled", "formnovalidate", "");
+            HTMLData += String.format(INPUT_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "", "");
             i++;
         }
         HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(NULL);
-        HTMLData += String.format(DATA_COLUMN_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "", "");
+        HTMLData += String.format(INPUT_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "", "");
         return HTMLData;
     }
 
@@ -46,13 +47,13 @@ public class HTMLBuilder {
         return DATA_HEADER;
     }
 
-    private final static String DATA_COLUMN_FORMAT = "\t\t\t<td><input name=\"%1$s\" value=\"%2$s\" type=\"%3$s\" placeholder=\"%1$s\" title=\"%4$s\" autocomplete=\"%5$s\" %6$s %7$s %8$s list=\"%9$s\">\n";
+    private final static String INPUT_FORMAT = "\t\t\t<td><input name=\"%1$s\" value=\"%2$s\" type=\"%3$s\" placeholder=\"%1$s\" title=\"%4$s\" autocomplete=\"%5$s\" %6$s %7$s %8$s list=\"%9$s\">\n";
 
     private static MessageFormat DATA_ROW_FORMAT(LinkedHashMap<String, String> columns) {
         String DATA_ROW_FORMAT = "";
         int i = 0;
         for (String name : columns.keySet()) {
-            DATA_ROW_FORMAT += String.format(DATA_COLUMN_FORMAT, name, "{" + i + "}", HTML_TYPE_MAPPING.get(columns.get(name)), "Дважды кликните, чтобы изменить", "off", columns.get(name).equals("serial") ? "" : "required", "disabled", "", "");
+            DATA_ROW_FORMAT += String.format(INPUT_FORMAT, name, "{" + i + "}", HTML_TYPE_MAPPING.get(columns.get(name)), "Дважды кликните, чтобы изменить", "off", columns.get(name).equals("serial") ? "" : "required", "disabled", "", "");
             i++;
         }
         return new MessageFormat(DATA_ROW_FORMAT);

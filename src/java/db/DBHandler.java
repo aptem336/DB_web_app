@@ -16,8 +16,6 @@ public class DBHandler {
 
     public final static LinkedHashMap<String, TableHandler> TABLE_HANDLERS = new LinkedHashMap<>();
 
-    //TO-DO:
-    //Соединение - синглтон?
     static {
         try (Connection connection = getConnection()) {
             DatabaseMetaData database_MD = connection.getMetaData();
@@ -30,12 +28,12 @@ public class DBHandler {
                 for (int i = 0; i < dataMD.getColumnCount(); i++) {
                     columns.put(dataMD.getColumnName(i + 1), dataMD.getColumnTypeName(i + 1));
                 }
-                ArrayList<LinkedHashMap<String, String>> table = new ArrayList<>();
                 ResultSet pkRS = database_MD.getPrimaryKeys(null, null, table_name);
                 LinkedHashSet<String> pk = new LinkedHashSet<>();
                 while (pkRS.next()) {
                     pk.add(pkRS.getString("COLUMN_NAME"));
                 }
+                ArrayList<LinkedHashMap<String, String>> table = new ArrayList<>();
                 while (dataRS.next()) {
                     LinkedHashMap<String, String> row = new LinkedHashMap<>();
                     for (String name : columns.keySet()) {
@@ -46,7 +44,7 @@ public class DBHandler {
                 TABLE_HANDLERS.put(table_name, new TableHandler(table_name, pk, columns, table));
             }
         } catch (NamingException | SQLException ex) {
-            System.err.println(ex.getMessage());
+            System.out.println(ex.getMessage());
         }
     }
 

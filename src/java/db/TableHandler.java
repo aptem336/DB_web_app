@@ -2,6 +2,7 @@ package db;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -29,6 +30,7 @@ public class TableHandler {
     //сократить, многое повторяется
     public void apply(HashMap<String, String[]> parameters) throws SQLException, NamingException {
         int i = 0;
+        System.out.println(Arrays.toString(parameters.get("index")));
         for (String index_string : parameters.get("index")) {
             int index = Integer.parseInt(index_string);
             LinkedHashMap<String, String> row = new LinkedHashMap<>();
@@ -51,6 +53,8 @@ public class TableHandler {
         HTMLBuilder.updateDataTable(table);
     }
 
+    //TO-DO:
+    //сократить, многое повторяется
     public void delete(HashMap<String, String[]> parameters) throws SQLException, NamingException {
         int index = Integer.parseInt(parameters.get("index")[0]);
         LinkedHashMap<String, String> pk_values = new LinkedHashMap<>();
@@ -58,6 +62,7 @@ public class TableHandler {
             pk_values.put(key, table.get(index).get(key));
         });
         SQLBuilder.delete(pk_values);
+        table.remove(index);
         HTMLBuilder.updateDataTable(table);
     }
 

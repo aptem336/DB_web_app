@@ -8,6 +8,9 @@ body {
 #data_table {
     margin: auto;
 }
+#data_table tr:last-child input:disabled {
+    opacity: 0.5;
+}
 #data_table tr:hover input:disabled {
     border: 2px solid #90bafe;
     border-radius: 2px;
