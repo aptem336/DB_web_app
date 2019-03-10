@@ -8,13 +8,18 @@ body {
 #data_table {
     margin: auto;
 }
-input {
-    border: 1px solid #eaf2ff;
+input, select {
+    border: 1px solid #7c7c7c;
     border-radius: 2px;
     text-align: center;
+    width: 100%;
 }
 #data_table tr:last-child input:disabled {
     opacity: 0.5;
+}
+#data_table tr:hover input:disabled {
+    border: 1px solid #7cacf9;
+    cursor: pointer;
 }
 #data_table tr:hover input:disabled {
     border: 1px solid #7cacf9;
