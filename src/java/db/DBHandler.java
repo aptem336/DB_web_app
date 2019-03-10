@@ -48,6 +48,8 @@ public class DBHandler {
                 }
                 TABLE_HANDLERS.put(table_name, new TableHandler(table_name, columns, pk, fk, table));
             }
+            TABLE_HANDLERS.get("Врачи").showing_column = "ФИО";
+            TABLE_HANDLERS.get("Пациенты").showing_column = "ФИО";
         } catch (NamingException | SQLException ex) {
             System.out.println(ex.getMessage());
         }
