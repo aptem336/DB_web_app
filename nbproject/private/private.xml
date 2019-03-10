@@ -22,9 +22,8 @@
         <group>
             <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/web/styles.css</file>
             <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/src/java/db/TableHandler.java</file>
+            <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/web/data_row.js</file>
             <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/src/java/db/DBHandler.java</file>
-            <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/src/java/db/Servlet.java</file>
-            <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/src/java/db/SQLBuilder.java</file>
             <file>file:/D:/OneDrive/CODE/_GIT/DB_web_app/src/java/db/HTMLBuilder.java</file>
         </group>
     </open-files>
