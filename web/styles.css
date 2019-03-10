@@ -1,10 +1,33 @@
-th, td {
-    border: 2px solid lightgray;
+body {
+    text-align: center;
 }
-tr:hover:not(:first-child) td {
+#data_frame {
+    width: 100%;
+    height: 700px;
+}
+#data_table {
+    margin: auto;
+}
+input, select {
+    border: 1px solid #7c7c7c;
+    border-radius: 2px;
+    text-align: center;
+    width: 100%;
+}
+#data_table tr:last-child input:disabled {
+    opacity: 0.5;
+}
+#data_table tr:hover input:disabled {
+    border: 1px solid #7cacf9;
     cursor: pointer;
-    border: 2px solid lightblue;
 }
-tr.selected {
-    background-color: lightgray;
+#data_table tr:hover input:disabled {
+    border: 1px solid #7cacf9;
+    cursor: pointer;
+}
+input:invalid {
+    border: 1px solid #ff3838;
+}
+input:valid {
+    border: 1px solid #29ad4a;
 }

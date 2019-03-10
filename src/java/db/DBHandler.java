@@ -1,67 +1,61 @@
 package db;
 
-import entities.*;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 public class DBHandler {
 
-    public final static HashMap<String, ActiveRecord> UNITS = new HashMap<>();
-    public final static HashMap<String, ArrayList<ActiveRecord>> DATA = new HashMap<>();
+    public final static LinkedHashMap<String, TableHandler> TABLE_HANDLERS = new LinkedHashMap<>();
 
     static {
-        UNITS.put(new Address().getTableName(), new Address());
-        UNITS.put(new Sector().getTableName(), new Sector());
-        UNITS.put(new Status().getTableName(), new Status());
-        UNITS.put(new Purpose().getTableName(), new Purpose());
-        UNITS.put(new Doctor().getTableName(), new Doctor());
-        UNITS.put(new Diagnosis().getTableName(), new Diagnosis());
-        UNITS.put(new Patient().getTableName(), new Patient());
-        UNITS.put(new Visit().getTableName(), new Visit());
-        UNITS.values().forEach((record) -> {
-            readData(record);
-        });
-    }
-
-    private static void readData(ActiveRecord record) {
-        try {
-            ArrayList<ActiveRecord> records = new ArrayList<>();
-            ResultSet data = getResultSet("SELECT * FROM \"" + record.getTableName() + "\"");
-            while (data.next()) {
-                Object[] row = new Object[data.getMetaData().getColumnCount()];
-                for (int i = 0; i < row.length; i++) {
-                    row[i] = data.getObject(i + 1);
+        try (Connection connection = getConnection()) {
+            DatabaseMetaData database_MD = connection.getMetaData();
+            ResultSet table_names = database_MD.getTables(null, null, "%", new String[]{"TABLE"});
+            while (table_names.next()) {
+                String table_name = table_names.getString("TABLE_NAME");
+                ResultSet dataRS = connection.createStatement().executeQuery("SELECT * FROM \"" + table_name + "\"");
+                ResultSetMetaData dataMD = dataRS.getMetaData();
+                LinkedHashMap<String, String> columns = new LinkedHashMap<>();
+                for (int i = 0; i < dataMD.getColumnCount(); i++) {
+                    columns.put(dataMD.getColumnName(i + 1), dataMD.getColumnTypeName(i + 1));
                 }
-                records.add(record.cast(row));
+                ResultSet pkRS = database_MD.getPrimaryKeys(null, null, table_name);
+                LinkedHashSet<String> pk = new LinkedHashSet<>();
+                while (pkRS.next()) {
+                    pk.add(pkRS.getString("COLUMN_NAME"));
+                }
+                ResultSet fkRS = database_MD.getImportedKeys(null, null, table_name);
+                LinkedHashMap<String, String> fk = new LinkedHashMap<>();
+                while (fkRS.next()) {
+                    fk.put(fkRS.getString("FKCOLUMN_NAME"), fkRS.getString("PKTABLE_NAME"));
+                }
+                ArrayList<LinkedHashMap<String, String>> table = new ArrayList<>();
+                while (dataRS.next()) {
+                    LinkedHashMap<String, String> row = new LinkedHashMap<>();
+                    for (String name : columns.keySet()) {
+                        row.put(name, dataRS.getString(name));
+                    }
+                    table.add(row);
+                }
+                TABLE_HANDLERS.put(table_name, new TableHandler(table_name, columns, pk, fk, table));
             }
-            DATA.put(record.getTableName(), records);
-        } catch (SQLException ex) {
-            //TO-DO
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    public static ResultSet getResultSet(String select_query) {
-        try {
-            return getConnection().createStatement().executeQuery(select_query);
+            TABLE_HANDLERS.get("Врачи").showing_column = "ФИО";
+            TABLE_HANDLERS.get("Пациенты").showing_column = "ФИО";
         } catch (NamingException | SQLException ex) {
-            //TO-DO
             System.out.println(ex.getMessage());
-            return null;
         }
     }
 
-    public static void executeUpdate(String update_query) throws NamingException, SQLException {
-        getConnection().createStatement().executeUpdate(update_query);
-    }
-
-    private static Connection getConnection() throws NamingException, SQLException {
+    public static Connection getConnection() throws NamingException, SQLException {
         InitialContext initContext = new InitialContext();
         DataSource dataSource = (DataSource) initContext.lookup("java:comp/env/jdbc/sql");
         return dataSource.getConnection();
