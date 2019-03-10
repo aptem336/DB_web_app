@@ -33,6 +33,11 @@ public class DBHandler {
                 while (pkRS.next()) {
                     pk.add(pkRS.getString("COLUMN_NAME"));
                 }
+                ResultSet fkRS = database_MD.getImportedKeys(null, null, table_name);
+                LinkedHashMap<String, String> fk = new LinkedHashMap<>();
+                while (fkRS.next()) {
+                    fk.put(fkRS.getString("FKCOLUMN_NAME"), fkRS.getString("PKTABLE_NAME"));
+                }
                 ArrayList<LinkedHashMap<String, String>> table = new ArrayList<>();
                 while (dataRS.next()) {
                     LinkedHashMap<String, String> row = new LinkedHashMap<>();
@@ -41,7 +46,7 @@ public class DBHandler {
                     }
                     table.add(row);
                 }
-                TABLE_HANDLERS.put(table_name, new TableHandler(table_name, pk, columns, table));
+                TABLE_HANDLERS.put(table_name, new TableHandler(table_name, columns, pk, fk, table));
             }
         } catch (NamingException | SQLException ex) {
             System.out.println(ex.getMessage());

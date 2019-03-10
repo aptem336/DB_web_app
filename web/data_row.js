@@ -7,7 +7,7 @@ var apply = document.getElementById('apply');
         reset.removeAttribute('hidden');
         apply.removeAttribute('hidden');
     };
-    //как-то костыльно?
+    //как-то костыльно? 
     if (i < data_rows.length - 1) {
         data_row.querySelector('[name="type"]').onclick = function () {
             data_row.querySelector('[name="index"]').removeAttribute('disabled');

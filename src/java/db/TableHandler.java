@@ -2,7 +2,6 @@ package db;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -17,11 +16,11 @@ public class TableHandler {
     private final HTMLBuilder HTMLBuilder;
     private final SQLBuilder SQLBuilder;
 
-    public TableHandler(String table_name, LinkedHashSet<String> pk, LinkedHashMap<String, String> columns, ArrayList<LinkedHashMap<String, String>> table) throws NamingException, SQLException {
+    public TableHandler(String table_name, LinkedHashMap<String, String> columns, LinkedHashSet<String> pk, LinkedHashMap<String, String> fk, ArrayList<LinkedHashMap<String, String>> table) throws NamingException, SQLException {
         this.pk = pk;
         this.columns = columns;
         this.table = table;
-        this.HTMLBuilder = new HTMLBuilder(columns);
+        this.HTMLBuilder = new HTMLBuilder(columns, fk);
         HTMLBuilder.updateDataTable(table);
         this.SQLBuilder = new SQLBuilder(table_name, pk, columns);
     }
@@ -30,7 +29,6 @@ public class TableHandler {
     //сократить, многое повторяется
     public void apply(HashMap<String, String[]> parameters) throws SQLException, NamingException {
         int i = 0;
-        System.out.println(Arrays.toString(parameters.get("index")));
         for (String index_string : parameters.get("index")) {
             int index = Integer.parseInt(index_string);
             LinkedHashMap<String, String> row = new LinkedHashMap<>();

@@ -8,11 +8,21 @@ body {
 #data_table {
     margin: auto;
 }
+input {
+    border: 1px solid #eaf2ff;
+    border-radius: 2px;
+    text-align: center;
+}
 #data_table tr:last-child input:disabled {
     opacity: 0.5;
 }
 #data_table tr:hover input:disabled {
-    border: 2px solid #90bafe;
-    border-radius: 2px;
+    border: 1px solid #7cacf9;
     cursor: pointer;
+}
+input:invalid {
+    border: 1px solid #ff3838;
+}
+input:valid {
+    border: 1px solid #29ad4a;
 }
