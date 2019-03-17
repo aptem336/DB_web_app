@@ -1,97 +1,84 @@
 package db;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 
 public class HTMLBuilder {
 
-    private final String[] NULL;
-    private final String HEADER;
-    private final MessageFormat ROW_FORMAT;
-    private final LinkedHashMap<String, String> fk;
-    public String HTML_TABLE;
+    private final LinkedHashMap<String, String> NULL;
+    private final String HTML_TABLE_HEADER;
+    private final MessageFormat HTML_TABLE_ROW_FORMAT;
+    private final LinkedHashMap<String, String> FK_table_names;
 
-    public HTMLBuilder(LinkedHashMap<String, String> columns, LinkedHashMap<String, String> fk) {
-        this.fk = fk;
-        this.NULL = new String[columns.keySet().size() - fk.keySet().size()];
-        Arrays.fill(this.NULL, "");
-        this.HEADER = DATA_HEADER(columns, fk);
-        this.ROW_FORMAT = DATA_ROW_FORMAT(columns, fk);
+    public HTMLBuilder(LinkedHashMap<String, Column> columns) {
+        this.NULL = new LinkedHashMap<>();
+        columns.keySet().forEach((column_name) -> {
+            NULL.put(column_name, "");
+        });
+        this.HTML_TABLE_HEADER = buildHTML_TABLE_HEADER(columns);
+        this.HTML_TABLE_ROW_FORMAT = buildHTML_TABLE_ROW_FORMAT(columns);
+        this.FK_table_names = new LinkedHashMap<>();
+        columns.keySet().forEach((column_name) -> {
+            Column column = columns.get(column_name);
+            if (column.isFK) {
+                FK_table_names.put(column_name, column.FK_table_name);
+            }
+        });
     }
 
-    //...
-    public String buildOptions(Collection<LinkedHashMap<String, String>> data, LinkedHashSet<String> pk, String showingColumn, String value) {
-        String OPTIONS = "";
-        String key = pk.toArray()[0].toString();
-        showingColumn = showingColumn != null ? showingColumn : key;
-        for (LinkedHashMap<String, String> row : data) {
-            OPTIONS += String.format("\t\t\t\t\t<option value=\"%s\" %s>%s\n", row.get(key), row.get(key).equals(value) ? "selected" : "", row.get(showingColumn));
-        }
-        return OPTIONS;
+    public String buildHTMLTable(Collection<LinkedHashMap<String, String>> data) {
+        return HTML_TABLE_HEADER + buildHTML_TABLE(data, HTML_TABLE_ROW_FORMAT, FK_table_names, NULL);
     }
 
-    public void updateDataTable(Collection<LinkedHashMap<String, String>> data) {
-        this.HTML_TABLE = HEADER + buildDATA_TABLE(data, ROW_FORMAT, NULL, fk);
-    }
-
-    private static String buildDATA_TABLE(Collection<LinkedHashMap<String, String>> data, MessageFormat ROW_FORMAT, String[] NULL, LinkedHashMap<String, String> fk) {
+    private static String buildHTML_TABLE(Collection<LinkedHashMap<String, String>> data, MessageFormat ROW_FORMAT, LinkedHashMap<String, String> FK_table_names, LinkedHashMap<String, String> NULL) {
         String HTMLData = "";
         int i = 0;
         for (LinkedHashMap<String, String> row : data) {
-            HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(row.values().toArray());
-            for (String name : fk.keySet()) {
-                HTMLData += String.format("\t\t\t<td>\n\t\t\t\t<select name=\"%s\" required disabled>\n%s", name, DBHandler.TABLE_HANDLERS.get(fk.get(name)).getHTMLOptions(row.get(name)));
-            }
-            HTMLData += String.format(INPUT_FORMAT, "type", "×", "submit", "", "off", "", "enabled", "formnovalidate", "");
-            HTMLData += String.format(INPUT_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "");
+            LinkedHashMap<String, String> HTML_row = new LinkedHashMap<>(row);
+            FK_table_names.keySet().forEach((column_name) -> {
+                HTML_row.put(column_name, DBHandler.TABLE_HANDLERS.get(FK_table_names.get(column_name)).getAvailableOptions(row.get(column_name)));
+            });
+            HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(HTML_row.values().toArray());
+            HTMLData += String.format("\t\t\t<td><button type=\"submit\" name=\"type\" value=\"delete\" formnovalidate>×</button>\n");
+            HTMLData += String.format(INPUT_FORMAT, "index", i, "hidden", "");
             i++;
         }
-        HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(NULL);
-        for (String name : fk.keySet()) {
-            HTMLData += String.format("\t\t\t<td>\n\t\t\t\t<select name=\"%s\" required disabled>\n%s", name, DBHandler.TABLE_HANDLERS.get(fk.get(name)).getHTMLOptions(""));
-        }
+        FK_table_names.keySet().forEach((column_name) -> {
+            NULL.put(column_name, DBHandler.TABLE_HANDLERS.get(FK_table_names.get(column_name)).getAvailableOptions(""));
+        });
+        HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(NULL.values().toArray());
         HTMLData += String.format(INPUT_FORMAT, "index", i, "hidden", "", "off", "", "disabled", "");
         return HTMLData;
     }
 
-    private static String DATA_HEADER(LinkedHashMap<String, String> columns, LinkedHashMap<String, String> fk) {
-        String DATA_HEADER = "\t\t<tr class=\"data_header\">\n";
+    private static String buildHTML_TABLE_HEADER(LinkedHashMap<String, Column> columns) {
+        String DATA_HEADER = "\t\t<tr id=\"data_header\">\n";
         for (String name : columns.keySet()) {
-            if (!fk.containsKey(name)) {
+            Column column = columns.get(name);
+            if (!column.isFK) {
                 DATA_HEADER += "\t\t\t<th>" + name + "\n";
+            } else {
+                DATA_HEADER += "\t\t\t<th>" + column.FK_table_name + "\n";
             }
-        }
-        for (String name : fk.keySet()) {
-            DATA_HEADER += "\t\t\t<th>" + fk.get(name) + "\n";
         }
         return DATA_HEADER;
     }
 
-    private final static String INPUT_FORMAT = "\t\t\t<td><input name=\"%1$s\" value=\"%2$s\" type=\"%3$s\" placeholder=\"%1$s\" title=\"%4$s\" autocomplete=\"%5$s\" %6$s %7$s %8$s>\n";
+    private final static String INPUT_FORMAT = "\t\t\t<td><input name=\"%1$s\" value=\"%2$s\" type=\"%3$s\" placeholder=\"%1$s\" autocomplete=\"off\" disabled %4$s>\n";
 
-    private static MessageFormat DATA_ROW_FORMAT(LinkedHashMap<String, String> columns, LinkedHashMap<String, String> fk) {
+    private static MessageFormat buildHTML_TABLE_ROW_FORMAT(LinkedHashMap<String, Column> columns) {
         String DATA_ROW_FORMAT = "";
         int i = 0;
-        for (String name : columns.keySet()) {
-            if (!fk.containsKey(name)) {
-                DATA_ROW_FORMAT += String.format(INPUT_FORMAT, name, "{" + i + "}", HTML_TYPE_MAPPING.get(columns.get(name)), "Дважды кликните, чтобы изменить", "off", columns.get(name).equals("serial") ? "" : "required", "disabled", "");
+        for (String column_name : columns.keySet()) {
+            Column column = columns.get(column_name);
+            if (!column.isFK) {
+                DATA_ROW_FORMAT += String.format(INPUT_FORMAT, column_name, "{" + i + "}", column.HTMLType, column.isAutoIncrement | column.isNullable ? "" : "required");
+            } else {
+                DATA_ROW_FORMAT += String.format("\t\t\t<td><select name=\"" + column_name + "\" disabled>{" + i + "}\n");
             }
             i++;
         }
         return new MessageFormat(DATA_ROW_FORMAT);
-    }
-
-    private final static HashMap<String, String> HTML_TYPE_MAPPING = new HashMap<>();
-
-    static {
-        HTML_TYPE_MAPPING.put("serial", "number");
-        HTML_TYPE_MAPPING.put("int4", "number");
-        HTML_TYPE_MAPPING.put("int8", "number");
-        HTML_TYPE_MAPPING.put("text", "text");
-        HTML_TYPE_MAPPING.put("date", "date");
     }
 }

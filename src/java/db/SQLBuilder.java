@@ -1,7 +1,6 @@
 package db;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -11,68 +10,73 @@ import javax.naming.NamingException;
 
 public class SQLBuilder {
 
-    private final LinkedHashMap<String, String> columns;
+    private final LinkedHashMap<String, Column> columns;
     private final String insertQuery;
     private final String updateQuery;
     private final String deleteQuery;
 
-    //разобраться с PStmt, открывать при переходе на таблицу?
-    //передаю индекс...???
-    public SQLBuilder(String table_name, LinkedHashSet<String> pk, LinkedHashMap<String, String> columns) throws NamingException, SQLException {
+    public SQLBuilder(String table_name, LinkedHashMap<String, Column> columns) throws NamingException, SQLException {
         this.columns = columns;
-        insertQuery = "INSERT INTO \"" + table_name + "\" " + buildInsertQuery(columns);
-        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns) + " " + buildDeleteQuery(pk);
-        deleteQuery = "DELETE FROM \"" + table_name + "\" " + buildDeleteQuery(pk);
+        insertQuery = "INSERT INTO \"" + table_name + "\" " + buildInsertQuery(columns.keySet().toArray());
+        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns.keySet().toArray()) + " " + buildDeleteQuery(columns);
+        deleteQuery = "DELETE FROM \"" + table_name + "\" " + buildDeleteQuery(columns);
+
     }
 
-    public void insert(LinkedHashMap<String, String> row) throws SQLException, NamingException {
+    public void insert(LinkedHashMap<String, String> values) throws SQLException, NamingException {
         try (Connection connection = DBHandler.getConnection(); PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-            JAVA_TYPE_MAPPING(1, insertStatement, columns, row);
+            setObjects(1, insertStatement, columns, values);
             insertStatement.executeUpdate();
         }
     }
 
-    public void update(LinkedHashMap<String, String> row, LinkedHashMap<String, String> pk) throws SQLException, NamingException {
+    public void update(LinkedHashMap<String, String> values, LinkedHashMap<String, String> pk_values) throws SQLException, NamingException {
         try (Connection connection = DBHandler.getConnection(); PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
-            JAVA_TYPE_MAPPING(1, updateStatement, columns, row);
-            JAVA_TYPE_MAPPING(row.size() + 1, updateStatement, columns, pk);
+            setObjects(1, updateStatement, columns, values);
+            setObjects(values.size() + 1, updateStatement, columns, pk_values);
             updateStatement.executeUpdate();
         }
     }
 
-    public void delete(LinkedHashMap<String, String> pk) throws SQLException, NamingException {
+    public void delete(LinkedHashMap<String, String> pk_values) throws SQLException, NamingException {
         try (Connection connection = DBHandler.getConnection(); PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
-            JAVA_TYPE_MAPPING(1, deleteStatement, columns, pk);
+            setObjects(1, deleteStatement, columns, pk_values);
             deleteStatement.executeUpdate();
         }
     }
 
-    private static String buildInsertQuery(LinkedHashMap<String, String> columns) {
+    private static String buildInsertQuery(Object[] column_names) {
         String insertQuery = "(";
         String format = "{0}";
-        for (int i = 1; i < columns.keySet().size(); i++) {
+        for (int i = 1; i < column_names.length; i++) {
             format += ", {" + i + "}";
         }
-        insertQuery += new MessageFormat(format).format(columns.keySet().toArray());
+        insertQuery += new MessageFormat(format).format(column_names);
         insertQuery += ") VALUES (?";
-        for (int i = 1; i < columns.keySet().size(); i++) {
+        for (int i = 1; i < column_names.length; i++) {
             insertQuery += ", ?";
         }
         insertQuery += ")";
         return insertQuery;
     }
 
-    private static String buildUpdateQuery(LinkedHashMap<String, String> columns) {
+    private static String buildUpdateQuery(Object[] column_names) {
         String updateQuery = "";
         String format = "{0}=?";
-        for (int i = 1; i < columns.keySet().size(); i++) {
+        for (int i = 1; i < column_names.length; i++) {
             format += ", {" + i + "}=?";
         }
-        updateQuery += new MessageFormat(format).format(columns.keySet().toArray());
+        updateQuery += new MessageFormat(format).format(column_names);
         return updateQuery;
     }
 
-    private static String buildDeleteQuery(LinkedHashSet<String> pk) {
+    private static String buildDeleteQuery(LinkedHashMap<String, Column> columns) {
+        LinkedHashSet<String> pk = new LinkedHashSet<>();
+        for (String name : columns.keySet()) {
+            if (columns.get(name).isPK) {
+                pk.add(name);
+            }
+        }
         String deleteQuery = "WHERE (";
         String format = "{0}=?";
         for (int i = 1; i < pk.size(); i++) {
@@ -83,21 +87,9 @@ public class SQLBuilder {
         return deleteQuery;
     }
 
-    private static void JAVA_TYPE_MAPPING(int i, PreparedStatement stmt, LinkedHashMap<String, String> columns, LinkedHashMap<String, String> values) throws SQLException {
-        for (String name : values.keySet()) {
-            switch (columns.get(name)) {
-                case "serial":
-                case "int4":
-                case "int8":
-                    stmt.setInt(i, Integer.parseInt(values.get(name)));
-                    break;
-                case "text":
-                    stmt.setString(i, values.get(name));
-                    break;
-                case "date":
-                    stmt.setDate(i, Date.valueOf(values.get(name)));
-                    break;
-            }
+    private static void setObjects(int i, PreparedStatement stmt, LinkedHashMap<String, Column> columns, LinkedHashMap<String, String> values) throws SQLException {
+        for (String column_names : values.keySet()) {
+            stmt.setObject(i, values.get(column_names), columns.get(column_names).SQLType);
             i++;
         }
     }

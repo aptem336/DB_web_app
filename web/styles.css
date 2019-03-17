@@ -4,30 +4,32 @@ body {
 #data_frame {
     width: 100%;
     height: 700px;
+    border: none;
 }
 #data_table {
     margin: auto;
+}
+#data_table tr:last-child input:disabled {
+    opacity: 0.5;
+}
+#data_header {
+}
+.data_row:hover {
+    cursor: pointer;
+}
+.data_row:hover input:disabled, .data_row:hover select:disabled {
+    border: 1px solid #7cacf9;
+    pointer-events: none;
 }
 input, select {
     border: 1px solid #7c7c7c;
     border-radius: 2px;
     text-align: center;
     width: 100%;
-}
-#data_table tr:last-child input:disabled {
-    opacity: 0.5;
-}
-#data_table tr:hover input:disabled {
-    border: 1px solid #7cacf9;
-    cursor: pointer;
-}
-#data_table tr:hover input:disabled {
-    border: 1px solid #7cacf9;
-    cursor: pointer;
-}
+}                               
 input:invalid {
-    border: 1px solid #ff3838;
+    border-color: #ff3838;
 }
 input:valid {
-    border: 1px solid #29ad4a;
+    border-color: #29ad4a;
 }

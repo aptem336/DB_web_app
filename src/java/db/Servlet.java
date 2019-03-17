@@ -30,28 +30,26 @@ public class Servlet extends HttpServlet {
                     case "apply":
                         DBHandler.TABLE_HANDLERS.get(table_name).apply(parameters);
                         break;
-                    case "×":
+                    case "delete":
                         DBHandler.TABLE_HANDLERS.get(table_name).delete(parameters);
                         break;
                 }
                 out.println("\t<form id=\"data_form\" action=\"\" target=\"data_frame\" method=\"post\">");
                 out.printf("\t\t<table id=\"data_table\">\n%s\t\t</table>\n", DBHandler.TABLE_HANDLERS.get(table_name).getHTMLTable());
                 out.printf("\t\t<button id=\"apply\" name=\"type\" value=\"%s\" hidden=\"true\">%s</button>\n", "apply", "Применить");
-                out.printf("\t\t<button id=\"reset\" name=\"type\" value=\"%s\"  hidden=\"true\" formnovalidate>%s</button>\n", "", "Отменить");
-                out.println("\t\t<input id=\"table_name\" type=\"hidden\" name=\"table_name\">");
+                out.printf("\t\t<button id=\"reset\" name=\"type\" value=\"%s\"  hidden=\"true\" formnovalidate autofocus>%s</button>\n", "", "Отменить");
+                out.println("\t\t<input type=\"hidden\" name=\"table_name\" value=\"" + table_name + "\">");
                 out.println("\t</form>");
-                out.println("\t<script type=\"text/javascript\">");
-                out.printf("\t\tdocument.getElementById('table_name').setAttribute('value', '%s');\n", table_name);
-                out.println("\t</script>");
-                out.println("\t<script type=\"text/javascript\" src=\"DB/data_row.js\"></script>");
+                out.println("\t<script type=\"text/javascript\" src=\"DB/datatable.js\"></script>");
             } else {
                 out.println("\t<form action=\"\" target=\"data_frame\" method=\"post\">");
-                DBHandler.TABLE_HANDLERS.keySet().forEach((record) -> {
-                    out.printf("\t\t<button name=\"table_name\" value=\"%1$s\">%1$s</button>\n", record);
+                DBHandler.TABLE_HANDLERS.keySet().forEach((table_name) -> {
+                    out.printf("\t\t<button name=\"table_name\" value=\"%1$s\">%1$s</button>\n", table_name);
                 });
                 out.println("\t\t<input type=\"hidden\" name=\"type\" value=\"\">");
                 out.println("\t</form>");
                 out.println("\t<iframe id=\"data_frame\" name=\"data_frame\"></iframe>");
+                out.println("\t<script type=\"text/javascript\" src=\"DB/tablebuttons.js\"></script>");
             }
             out.println("</body>");
             out.println("</html>");
