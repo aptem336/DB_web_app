@@ -14,12 +14,19 @@ public class SQLBuilder {
     private final String insertQuery;
     private final String updateQuery;
     private final String deleteQuery;
+    
+    /*
+        Передача индекса?
+        Построение запросов как строк?
+        Готовить выражения по открытию таблицы?
+    */
 
-    public SQLBuilder(String table_name, LinkedHashMap<String, Column> columns) throws NamingException, SQLException {
+    public SQLBuilder(String table_name, LinkedHashMap<String, Column> columns, LinkedHashSet<String> pk_columns) throws NamingException, SQLException {
         this.columns = columns;
         insertQuery = "INSERT INTO \"" + table_name + "\" " + buildInsertQuery(columns.keySet().toArray());
-        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns.keySet().toArray()) + " " + buildDeleteQuery(columns);
-        deleteQuery = "DELETE FROM \"" + table_name + "\" " + buildDeleteQuery(columns);
+        String rowID = buildRowID(pk_columns);
+        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns.keySet().toArray()) + " " + rowID;
+        deleteQuery = "DELETE FROM \"" + table_name + "\" " + rowID;
 
     }
 
@@ -70,19 +77,13 @@ public class SQLBuilder {
         return updateQuery;
     }
 
-    private static String buildDeleteQuery(LinkedHashMap<String, Column> columns) {
-        LinkedHashSet<String> pk = new LinkedHashSet<>();
-        for (String name : columns.keySet()) {
-            if (columns.get(name).isPK) {
-                pk.add(name);
-            }
-        }
+    private static String buildRowID(LinkedHashSet<String> pk_columns) {
         String deleteQuery = "WHERE (";
         String format = "{0}=?";
-        for (int i = 1; i < pk.size(); i++) {
+        for (int i = 1; i < pk_columns.size(); i++) {
             format += " AND {" + i + "}=?";
         }
-        deleteQuery += new MessageFormat(format).format(pk.toArray());
+        deleteQuery += new MessageFormat(format).format(pk_columns.toArray());
         deleteQuery += ")";
         return deleteQuery;
     }

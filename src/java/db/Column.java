@@ -16,19 +16,6 @@ public class Column {
         this.isNullable = isNullable;
     }
 
-    public boolean isPK = false;
-    public boolean isFK = false;
-    public String FK_table_name;
-
-    public void setPK() {
-        this.isPK = true;
-    }
-
-    public void setFK(String FK_table_name) {
-        this.isFK = true;
-        this.FK_table_name = FK_table_name;
-    }
-
     private final static HashMap<Integer, String> HTML_TYPE_MAPPING = new HashMap<>();
 
     static {

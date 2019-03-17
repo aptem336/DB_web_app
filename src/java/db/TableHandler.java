@@ -5,26 +5,26 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 import javax.naming.NamingException;
 
 public class TableHandler {
 
     private final LinkedHashMap<String, Column> columns;
+    private final LinkedHashSet<String> pk_columns;
     private final ArrayList<LinkedHashMap<String, String>> data;
     private final HTMLBuilder HTMLBuilder;
     private final SQLBuilder SQLBuilder;
 
-    public TableHandler(String table_name, LinkedHashMap<String, Column> columns, ArrayList<LinkedHashMap<String, String>> data) throws NamingException, SQLException {
+    public TableHandler(String table_name, LinkedHashMap<String, Column> columns, LinkedHashSet<String> pk_columns, LinkedHashMap<String, String> fk_columns, ArrayList<LinkedHashMap<String, String>> data) throws NamingException, SQLException {
         this.columns = columns;
+        this.pk_columns = pk_columns;
         this.data = data;
-        this.HTMLBuilder = new HTMLBuilder(columns);
-        this.SQLBuilder = new SQLBuilder(table_name, columns);
-        for (String column_name : columns.keySet()) {
-            if (columns.get(column_name).isPK) {
-                pk_column_name = column_name;
-            }
-        }
+        this.HTMLBuilder = new HTMLBuilder(columns, fk_columns);
+        this.SQLBuilder = new SQLBuilder(table_name, columns, pk_columns);
+        //кака
+        this.value_column_name = (String) pk_columns.toArray()[0];
     }
 
     public void apply(HashMap<String, String[]> parameters) throws SQLException, NamingException {
@@ -51,7 +51,7 @@ public class TableHandler {
                 SQLBuilder.insert(values);
                 data.add(values);
             } else {
-                SQLBuilder.update(values, getPKValues(index));
+                SQLBuilder.update(values, getRowID(index));
                 data.set(index, values);
             }
             i++;
@@ -60,31 +60,29 @@ public class TableHandler {
 
     public void delete(HashMap<String, String[]> parameters) throws SQLException, NamingException {
         int index = Integer.parseInt(parameters.get("index")[0]);
-        SQLBuilder.delete(getPKValues(index));
+        SQLBuilder.delete(getRowID(index));
         data.remove(index);
     }
 
-    private LinkedHashMap<String, String> getPKValues(int index) {
+    private LinkedHashMap<String, String> getRowID(int index) {
         LinkedHashMap<String, String> pk_values = new LinkedHashMap<>();
-        for (String column_name : columns.keySet()) {
-            if (columns.get(column_name).isPK) {
-                pk_values.put(column_name, data.get(index).get(column_name));
-            }
-        }
+        pk_columns.forEach((column_name) -> {
+            pk_values.put(column_name, data.get(index).get(column_name));
+        });
         return pk_values;
     }
 
     public String getHTMLTable() {
         return HTMLBuilder.buildHTMLTable(data);
     }
-
-    private String pk_column_name;
+    //<editor-fold defaultstate="collapsed" desc="кака">
+    private final String value_column_name;
     private String showing_column_name;
 
     public String getAvailableOptions(String value) {
         String options = "";
         for (LinkedHashMap<String, String> row : data) {
-            options += String.format("<option value=%s %s>%s", row.get(pk_column_name), row.get(pk_column_name).equals(value) ? "selected" : "", row.get(showing_column_name));
+            options += String.format("<option value=%s %s>%s", row.get(value_column_name), row.get(value_column_name).equals(value) ? "selected" : "", row.get(showing_column_name));
         }
         return options;
     }
@@ -92,4 +90,5 @@ public class TableHandler {
     public void setShowing_column_name(String showing_column_name) {
         this.showing_column_name = showing_column_name;
     }
+    //</editor-fold>
 }

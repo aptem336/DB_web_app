@@ -7,6 +7,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
@@ -15,11 +16,6 @@ public class DBHandler {
 
     public final static LinkedHashMap<String, TableHandler> TABLE_HANDLERS = new LinkedHashMap<>();
 
-    /*
-        Стоит-ли хранить данные от том что ключ является первичным/внешним только в структуре Column
-        Ведь далее эти данные всё равно вычленяются в массивы
-    */
-    
     static {
         try (Connection connection = getConnection()) {
             DatabaseMetaData databaseMD = connection.getMetaData();
@@ -33,12 +29,14 @@ public class DBHandler {
                     columns.put(dataMD.getColumnName(i + 1), new Column(dataMD.getColumnType(i + 1), dataMD.isAutoIncrement(i + 1), dataMD.isNullable(i + 1) == 1));
                 }
                 ResultSet pkRS = databaseMD.getPrimaryKeys(null, null, table_name);
+                LinkedHashSet<String> pk_columns = new LinkedHashSet<>();
                 while (pkRS.next()) {
-                    columns.get(pkRS.getString("COLUMN_NAME")).setPK();
+                    pk_columns.add(pkRS.getString("COLUMN_NAME"));
                 }
                 ResultSet fkRS = databaseMD.getImportedKeys(null, null, table_name);
+                LinkedHashMap<String, String> fk_columns = new LinkedHashMap<>();
                 while (fkRS.next()) {
-                    columns.get(fkRS.getString("FKCOLUMN_NAME")).setFK(fkRS.getString("PKTABLE_NAME"));
+                    fk_columns.put(fkRS.getString("FKCOLUMN_NAME"), fkRS.getString("PKTABLE_NAME"));
                 }
                 ArrayList<LinkedHashMap<String, String>> data = new ArrayList<>();
                 while (dataRS.next()) {
@@ -48,7 +46,7 @@ public class DBHandler {
                     }
                     data.add(row);
                 }
-                TABLE_HANDLERS.put(table_name, new TableHandler(table_name, columns, data));
+                TABLE_HANDLERS.put(table_name, new TableHandler(table_name, columns, pk_columns, fk_columns, data));
             }
             TABLE_HANDLERS.get("Специальность").setShowing_column_name("Название_специальности");
             TABLE_HANDLERS.get("Дисциплина").setShowing_column_name("Название_дисциплины");
