@@ -35,7 +35,7 @@ public class HTMLBuilder {
                 corrected_row.put(column_name, DBHandler.TABLE_HANDLERS.get(fk_columns.get(column_name)).getAvailableOptions(row.get(column_name)));
             });
             HTMLData += "\t\t<tr class=\"data_row\">\n" + ROW_FORMAT.format(corrected_row.values().toArray());
-            HTMLData += String.format("\t\t\t<td><button type=\"submit\" name=\"type\" value=\"delete\" formnovalidate>×</button>\n");
+            HTMLData += String.format("\t\t\t<td><button type=\"submit\" name=\"type\" value=\"delete\" class=\"delete\" formnovalidate>×</button>\n");
             HTMLData += String.format(INPUT_FORMAT, "index", i, "hidden", "");
             i++;
         }

@@ -1,11 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/DB">
-    <Resource name="jdbc/sql"
-              auth="Container"
-              type="javax.sql.DataSource"
-              username="postgres"
-              password="39547710"
-              driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://localhost:5432/library">
-    </Resource>
-</Context>
+<Context path="/DB"></Context>

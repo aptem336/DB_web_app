@@ -2,6 +2,7 @@ package db;
 
 import java.util.HashMap;
 
+//оправдано???
 public class Column {
 
     public final int SQLType;

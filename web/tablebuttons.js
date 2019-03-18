@@ -6,6 +6,6 @@ var clicked;
             clicked.style.opacity = 1.0;
         }
         clicked = this;
-        clicked.style.opacity = 0.5;
+        clicked.style.opacity = 0.75;
     };
 });

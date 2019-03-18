@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public class Servlet extends HttpServlet {
 
+    private static TableHandler tableHandler;
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
@@ -25,26 +27,28 @@ public class Servlet extends HttpServlet {
             HashMap<String, String[]> parameters = new HashMap<>(request.getParameterMap());
             String[] type = parameters.get("type");
             if (type != null) {
-                String table_name = parameters.get("table_name")[0];
                 switch (type[0]) {
+                    case "":
+                        tableHandler = DBHandler.TABLE_HANDLERS.get(parameters.get("table_name")[0]);
+                        tableHandler.prepareStatements();
+                        break;
                     case "apply":
-                        DBHandler.TABLE_HANDLERS.get(table_name).apply(parameters);
+                        tableHandler.apply(parameters);
                         break;
                     case "delete":
-                        DBHandler.TABLE_HANDLERS.get(table_name).delete(parameters);
+                        tableHandler.delete(parameters);
                         break;
                 }
                 out.println("\t<form id=\"data_form\" action=\"\" target=\"data_frame\" method=\"post\">");
-                out.printf("\t\t<table id=\"data_table\">\n%s\t\t</table>\n", DBHandler.TABLE_HANDLERS.get(table_name).getHTMLTable());
+                out.printf("\t\t<table id=\"data_table\">\n%s\t\t</table>\n", tableHandler.getHTMLTable());
                 out.printf("\t\t<button id=\"apply\" name=\"type\" value=\"%s\" hidden=\"true\">%s</button>\n", "apply", "Применить");
-                out.printf("\t\t<button id=\"reset\" name=\"type\" value=\"%s\"  hidden=\"true\" formnovalidate autofocus>%s</button>\n", "", "Отменить");
-                out.println("\t\t<input type=\"hidden\" name=\"table_name\" value=\"" + table_name + "\">");
+                out.printf("\t\t<button id=\"reset\" name=\"type\" value=\"%s\"  hidden=\"true\" formnovalidate autofocus>%s</button>\n", "reset", "Отменить");
                 out.println("\t</form>");
                 out.println("\t<script type=\"text/javascript\" src=\"DB/datatable.js\"></script>");
             } else {
                 out.println("\t<form action=\"\" target=\"data_frame\" method=\"post\">");
-                DBHandler.TABLE_HANDLERS.keySet().forEach((table_name) -> {
-                    out.printf("\t\t<button name=\"table_name\" value=\"%1$s\">%1$s</button>\n", table_name);
+                DBHandler.TABLE_HANDLERS.keySet().forEach((tableName) -> {
+                    out.printf("\t\t<button name=\"table_name\" value=\"%1$s\">%1$s</button>\n", tableName);
                 });
                 out.println("\t\t<input type=\"hidden\" name=\"type\" value=\"\">");
                 out.println("\t</form>");
@@ -56,6 +60,18 @@ public class Servlet extends HttpServlet {
         } catch (SQLException | NamingException ex) {
             System.out.println(ex.getMessage());
         }
+    }
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        DBHandler.init();
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        DBHandler.destroy();
     }
 
     //<editor-fold defaultstate="collapsed" desc="go/get">

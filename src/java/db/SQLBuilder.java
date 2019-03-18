@@ -1,6 +1,5 @@
 package db;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -14,44 +13,16 @@ public class SQLBuilder {
     private final String insertQuery;
     private final String updateQuery;
     private final String deleteQuery;
-    
-    /*
-        Передача индекса?
-        Построение запросов как строк?
-        Готовить выражения по открытию таблицы?
-    */
 
     public SQLBuilder(String table_name, LinkedHashMap<String, Column> columns, LinkedHashSet<String> pk_columns) throws NamingException, SQLException {
         this.columns = columns;
         insertQuery = "INSERT INTO \"" + table_name + "\" " + buildInsertQuery(columns.keySet().toArray());
-        String rowID = buildRowID(pk_columns);
-        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns.keySet().toArray()) + " " + rowID;
-        deleteQuery = "DELETE FROM \"" + table_name + "\" " + rowID;
-
+        String where = where(pk_columns);
+        updateQuery = "UPDATE \"" + table_name + "\" SET " + buildUpdateQuery(columns.keySet().toArray()) + " " + where;
+        deleteQuery = "DELETE FROM \"" + table_name + "\" " + where;
     }
 
-    public void insert(LinkedHashMap<String, String> values) throws SQLException, NamingException {
-        try (Connection connection = DBHandler.getConnection(); PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-            setObjects(1, insertStatement, columns, values);
-            insertStatement.executeUpdate();
-        }
-    }
-
-    public void update(LinkedHashMap<String, String> values, LinkedHashMap<String, String> pk_values) throws SQLException, NamingException {
-        try (Connection connection = DBHandler.getConnection(); PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
-            setObjects(1, updateStatement, columns, values);
-            setObjects(values.size() + 1, updateStatement, columns, pk_values);
-            updateStatement.executeUpdate();
-        }
-    }
-
-    public void delete(LinkedHashMap<String, String> pk_values) throws SQLException, NamingException {
-        try (Connection connection = DBHandler.getConnection(); PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
-            setObjects(1, deleteStatement, columns, pk_values);
-            deleteStatement.executeUpdate();
-        }
-    }
-
+    //формирование запросов как строк???
     private static String buildInsertQuery(Object[] column_names) {
         String insertQuery = "(";
         String format = "{0}";
@@ -77,7 +48,7 @@ public class SQLBuilder {
         return updateQuery;
     }
 
-    private static String buildRowID(LinkedHashSet<String> pk_columns) {
+    private static String where(LinkedHashSet<String> pk_columns) {
         String deleteQuery = "WHERE (";
         String format = "{0}=?";
         for (int i = 1; i < pk_columns.size(); i++) {
@@ -86,6 +57,41 @@ public class SQLBuilder {
         deleteQuery += new MessageFormat(format).format(pk_columns.toArray());
         deleteQuery += ")";
         return deleteQuery;
+    }
+
+    private static PreparedStatement insertStatement;
+    private static PreparedStatement updateStatement;
+    private static PreparedStatement deleteStatement;
+
+    public void prepareStatements() throws SQLException, NamingException {
+        if (insertStatement != null) {
+            insertStatement.close();
+        }
+        if (updateStatement != null) {
+            updateStatement.close();
+        }
+        if (deleteStatement != null) {
+            deleteStatement.close();
+        }
+        insertStatement = DBHandler.getConnection().prepareStatement(insertQuery);
+        updateStatement = DBHandler.getConnection().prepareStatement(updateQuery);
+        deleteStatement = DBHandler.getConnection().prepareStatement(deleteQuery);
+    }
+
+    public void insert(LinkedHashMap<String, String> values) throws SQLException, NamingException {
+        setObjects(1, insertStatement, columns, values);
+        insertStatement.executeUpdate();
+    }
+
+    public void update(LinkedHashMap<String, String> values, LinkedHashMap<String, String> pk_values) throws SQLException, NamingException {
+        setObjects(1, updateStatement, columns, values);
+        setObjects(values.size() + 1, updateStatement, columns, pk_values);
+        updateStatement.executeUpdate();
+    }
+
+    public void delete(LinkedHashMap<String, String> pk_values) throws SQLException, NamingException {
+        setObjects(1, deleteStatement, columns, pk_values);
+        deleteStatement.executeUpdate();
     }
 
     private static void setObjects(int i, PreparedStatement stmt, LinkedHashMap<String, Column> columns, LinkedHashMap<String, String> values) throws SQLException {

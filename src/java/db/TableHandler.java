@@ -51,7 +51,7 @@ public class TableHandler {
                 SQLBuilder.insert(values);
                 data.add(values);
             } else {
-                SQLBuilder.update(values, getRowID(index));
+                SQLBuilder.update(values, where(index));
                 data.set(index, values);
             }
             i++;
@@ -60,11 +60,11 @@ public class TableHandler {
 
     public void delete(HashMap<String, String[]> parameters) throws SQLException, NamingException {
         int index = Integer.parseInt(parameters.get("index")[0]);
-        SQLBuilder.delete(getRowID(index));
+        SQLBuilder.delete(where(index));
         data.remove(index);
     }
 
-    private LinkedHashMap<String, String> getRowID(int index) {
+    private LinkedHashMap<String, String> where(int index) {
         LinkedHashMap<String, String> pk_values = new LinkedHashMap<>();
         pk_columns.forEach((column_name) -> {
             pk_values.put(column_name, data.get(index).get(column_name));
@@ -72,9 +72,14 @@ public class TableHandler {
         return pk_values;
     }
 
+    public void prepareStatements() throws SQLException, NamingException {
+        SQLBuilder.prepareStatements();
+    }
+
     public String getHTMLTable() {
         return HTMLBuilder.buildHTMLTable(data);
     }
+
     //<editor-fold defaultstate="collapsed" desc="кака">
     private final String value_column_name;
     private String showing_column_name;
