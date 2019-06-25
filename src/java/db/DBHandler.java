@@ -56,11 +56,6 @@ public class DBHandler {
                     TABLE_HANDLERS.put(table_name, new TableHandler(table_name, columns, pk_columns, fk_columns, data));
                 }
             }
-            TABLE_HANDLERS.get("Специальность").setShowing_column_name("Название_специальности");
-            TABLE_HANDLERS.get("Дисциплина").setShowing_column_name("Название_дисциплины");
-            TABLE_HANDLERS.get("Книга").setShowing_column_name("Название");
-            TABLE_HANDLERS.get("Цикл").setShowing_column_name("Наименование_цикла");
-            TABLE_HANDLERS.get("Читатель").setShowing_column_name("ФИО");
         } catch (NamingException | SQLException ex) {
             System.out.println(ex.getMessage());
         }
@@ -72,7 +67,7 @@ public class DBHandler {
         try {
             Class.forName("org.postgresql.Driver").newInstance();
             if (CONNECTION == null) {
-                CONNECTION = DriverManager.getConnection("jdbc:postgresql://localhost:5432/library", "postgres", "39547710");
+                CONNECTION = DriverManager.getConnection("jdbc:postgresql://localhost:5432/sample", "postgres", "39547710");
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
             System.out.println(ex.getMessage());
@@ -86,6 +81,5 @@ public class DBHandler {
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
-
     }
 }

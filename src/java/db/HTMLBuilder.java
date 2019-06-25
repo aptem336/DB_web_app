@@ -22,7 +22,7 @@ public class HTMLBuilder {
         this.fk_columns = fk_columns;
     }
 
-    public String buildHTMLTable(Collection<LinkedHashMap<String, String>> data) {
+    public String getHTML_TABLE(Collection<LinkedHashMap<String, String>> data) {
         return HTML_TABLE_HEADER + buildHTML_TABLE(data, HTML_TABLE_ROW_FORMAT, fk_columns, NULL);
     }
 

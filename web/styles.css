@@ -33,3 +33,9 @@ input:invalid {
 input:valid {
     border-color: #29ad4a;
 }
+#exception {
+    border: 2px solid plum;
+    border-radius: 5px;
+    width: 50%;
+    margin: auto;
+}

@@ -23,8 +23,7 @@ public class TableHandler {
         this.data = data;
         this.HTMLBuilder = new HTMLBuilder(columns, fk_columns);
         this.SQLBuilder = new SQLBuilder(table_name, columns, pk_columns);
-        //кака
-        this.value_column_name = (String) pk_columns.toArray()[0];
+        this.pk_column_name = (String) pk_columns.toArray()[0];
     }
 
     public void apply(HashMap<String, String[]> parameters) throws SQLException, NamingException {
@@ -77,23 +76,15 @@ public class TableHandler {
     }
 
     public String getHTMLTable() {
-        return HTMLBuilder.buildHTMLTable(data);
+        return HTMLBuilder.getHTML_TABLE(data);
     }
 
-    //<editor-fold defaultstate="collapsed" desc="кака">
-    private final String value_column_name;
-    private String showing_column_name;
-
+    private final String pk_column_name;
     public String getAvailableOptions(String value) {
         String options = "";
         for (LinkedHashMap<String, String> row : data) {
-            options += String.format("<option value=%s %s>%s", row.get(value_column_name), row.get(value_column_name).equals(value) ? "selected" : "", row.get(showing_column_name));
+            options += String.format("<option value=%s %s>%s", row.get(pk_column_name), row.get(pk_column_name).equals(value) ? "selected" : "", row.get(pk_column_name));
         }
         return options;
     }
-
-    public void setShowing_column_name(String showing_column_name) {
-        this.showing_column_name = showing_column_name;
-    }
-    //</editor-fold>
 }

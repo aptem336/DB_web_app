@@ -16,7 +16,8 @@ public class Servlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
+        PrintWriter out = response.getWriter();
+        try {
             request.setCharacterEncoding("UTF-8");
             out.println("<!DOCTYPE html>");
             out.println("<html>");
@@ -58,7 +59,10 @@ public class Servlet extends HttpServlet {
             out.println("</body>");
             out.println("</html>");
         } catch (SQLException | NamingException ex) {
+            out.printf("<div id=\"exception\">%s</div>", ex.getMessage());
             System.out.println(ex.getMessage());
+        } finally {
+            out.close();
         }
     }
 
